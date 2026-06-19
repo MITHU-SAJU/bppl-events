@@ -16,7 +16,7 @@ const CATEGORIES = [
   "Other"
 ];
 
-function SearchableSelect({ options, value, onChange, onRefresh, required }) {
+function SearchableSelect({ options, value, onChange, onRefresh, required, isMulti }) {
   const isAdmin = !!localStorage.getItem("adminToken");
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -39,6 +39,11 @@ function SearchableSelect({ options, value, onChange, onRefresh, required }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Parse selected particulars from comma-separated string
+  const selectedList = value 
+    ? value.split(",").map(s => s.trim()).filter(Boolean) 
+    : [];
+
   // Filter options based on search query
   const filteredOptions = options.filter((opt) =>
     opt.name.toLowerCase().includes(search.toLowerCase())
@@ -58,9 +63,19 @@ function SearchableSelect({ options, value, onChange, onRefresh, required }) {
   );
 
   const handleSelect = (name) => {
-    onChange(name);
-    setIsOpen(false);
-    setSearch("");
+    if (isMulti) {
+      let newList;
+      if (selectedList.includes(name)) {
+        newList = selectedList.filter((item) => item !== name);
+      } else {
+        newList = [...selectedList, name];
+      }
+      onChange(newList.join(", "));
+    } else {
+      onChange(name);
+      setIsOpen(false);
+      setSearch("");
+    }
   };
 
   const handleOpenAddModal = (nameVal) => {
@@ -89,7 +104,12 @@ function SearchableSelect({ options, value, onChange, onRefresh, required }) {
         await onRefresh();
       }
       // Select the newly created service
-      onChange(response.data.name);
+      if (isMulti) {
+        const newList = [...selectedList, response.data.name];
+        onChange(newList.join(", "));
+      } else {
+        onChange(response.data.name);
+      }
       setShowAddModal(false);
       setSearch("");
     } catch (err) {
@@ -103,14 +123,37 @@ function SearchableSelect({ options, value, onChange, onRefresh, required }) {
     <div className="position-relative" ref={containerRef}>
       <div className="input-group">
         <div 
-          className="form-control d-flex justify-content-between align-items-center cursor-pointer"
-          style={{ cursor: "pointer", minHeight: "45px" }}
+          className="form-control d-flex justify-content-between align-items-center cursor-pointer flex-wrap g-1"
+          style={{ cursor: "pointer", minHeight: "45px", height: "auto" }}
           onClick={() => setIsOpen(!isOpen)}
         >
-          <span className={value ? "text-dark" : "text-muted"}>
-            {value || "Select Particular / Service"}
-          </span>
-          <span className="small text-secondary">▼</span>
+          {isMulti && selectedList.length > 0 ? (
+            <div className="d-flex flex-wrap gap-1 align-items-center" style={{ flexGrow: 1 }}>
+              {selectedList.map((item) => (
+                <span 
+                  key={item} 
+                  className="badge bg-primary text-white d-flex align-items-center gap-1 font-monospace py-1 px-2"
+                  style={{ textTransform: "none", fontSize: "0.8rem", borderRadius: "6px" }}
+                >
+                  {item}
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    style={{ fontSize: "0.55rem", padding: "2px", boxShadow: "none" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelect(item);
+                    }}
+                  />
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span className={value ? "text-dark" : "text-muted"}>
+              {value || "Select Particulars / Services"}
+            </span>
+          )}
+          <span className="small text-secondary ms-2">▼</span>
         </div>
         {isAdmin && (
           <button 
@@ -164,18 +207,28 @@ function SearchableSelect({ options, value, onChange, onRefresh, required }) {
                   <div className="text-secondary small font-monospace fw-bold px-2 py-1 bg-light rounded">
                     {cat}
                   </div>
-                  {grouped[cat].map((opt) => (
-                    <div
-                      key={opt._id || opt.name}
-                      className="px-3 py-2 cursor-pointer rounded text-secondary small select-option-item"
-                      style={{ cursor: "pointer", transition: "background 0.2s" }}
-                      onClick={() => handleSelect(opt.name)}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = "rgba(37, 99, 235, 0.08)"}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"}
-                    >
-                      {opt.name}
-                    </div>
-                  ))}
+                  {grouped[cat].map((opt) => {
+                    const isSelected = selectedList.includes(opt.name);
+                    return (
+                      <div
+                        key={opt._id || opt.name}
+                        className={`px-3 py-2 cursor-pointer rounded text-secondary small select-option-item d-flex justify-content-between align-items-center ${
+                          isSelected ? "bg-primary bg-opacity-10 text-primary fw-bold" : ""
+                        }`}
+                        style={{ cursor: "pointer", transition: "background 0.2s" }}
+                        onClick={() => handleSelect(opt.name)}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) e.target.style.backgroundColor = "rgba(37, 99, 235, 0.08)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) e.target.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <span>{opt.name}</span>
+                        {isSelected && <span className="text-primary fw-bold">✓</span>}
+                      </div>
+                    );
+                  })}
                 </div>
               ))
             ) : (

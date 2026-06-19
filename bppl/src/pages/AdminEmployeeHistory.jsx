@@ -389,6 +389,7 @@ function AdminEmployeeHistory() {
                       value={editEventData.particulars}
                       onChange={(val) => setEditEventData({ ...editEventData, particulars: val })}
                       onRefresh={fetchParticulars}
+                      isMulti={true}
                     />
                   </div>
 
