@@ -1,5 +1,6 @@
 import os
 import urllib.request
+import urllib.error
 import json
 from dotenv import load_dotenv
 
@@ -10,7 +11,7 @@ def send_event_notification_email(event_data: dict):
     admin_email = os.getenv("ADMIN_EMAIL")
 
     if not smtp_password or not admin_email:
-        print("[WARNING] SMTP settings incomplete (missing SMTP_PASSWORD or ADMIN_EMAIL)")
+        print("[WARNING] SMTP settings incomplete (missing SMTP_PASSWORD or ADMIN_EMAIL)", flush=True)
         return
 
     employee_name = event_data.get("employeeName", "Unknown Employee")
@@ -142,6 +143,12 @@ def send_event_notification_email(event_data: dict):
         )
         with urllib.request.urlopen(req, timeout=20) as response:
             response_body = response.read().decode("utf-8")
-            print(f"[SUCCESS] Event email sent via Brevo HTTP API: {response_body}")
+            print(f"[SUCCESS] Event email sent via Brevo HTTP API: {response_body}", flush=True)
+    except urllib.error.HTTPError as e:
+        try:
+            error_body = e.read().decode("utf-8")
+            print(f"[ERROR] HTTPError while sending email via Brevo API: {e.code} - {e.reason} - {error_body}", flush=True)
+        except Exception:
+            print(f"[ERROR] HTTPError while sending email via Brevo API: {e.code} - {e.reason}", flush=True)
     except Exception as e:
-        print(f"[ERROR] Failed to send email via Brevo HTTP API: {repr(e)}")
+        print(f"[ERROR] Failed to send email via Brevo HTTP API: {repr(e)}", flush=True)
