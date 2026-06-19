@@ -19,14 +19,16 @@ allowed_origins = [origin.strip() for origin in allowed_origins_raw.split(",") i
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=[
+        "https://bppl-events.netlify.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 @app.get("/")
 def home():
     return {
         "message": "Event Tracker API Running"
-    }
+    }
