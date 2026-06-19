@@ -49,6 +49,23 @@ def startup_event():
         print(f"CRITICAL ERROR: Failed to connect to MongoDB. Error: {e}")
         raise e
 
+    # SMTP variables check
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    admin_email = os.getenv("ADMIN_EMAIL")
+    
+    missing_smtp = []
+    if not smtp_host: missing_smtp.append("SMTP_HOST")
+    if not smtp_user: missing_smtp.append("SMTP_USER")
+    if not smtp_password: missing_smtp.append("SMTP_PASSWORD")
+    if not admin_email: missing_smtp.append("ADMIN_EMAIL")
+    
+    if missing_smtp:
+        print(f"[WARNING] SMTP settings are incomplete. Missing environment variables on Render: {', '.join(missing_smtp)}")
+    else:
+        print("[INFO] SMTP configuration is fully loaded on Render.")
+
 @app.get("/")
 def home():
     return {
