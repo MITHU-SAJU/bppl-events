@@ -1,17 +1,20 @@
 import os
-import urllib.request
-import urllib.error
-import json
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
 load_dotenv()
 
 def send_event_notification_email(event_data: dict):
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port_env = os.getenv("SMTP_PORT", "587")
+    smtp_user = os.getenv("SMTP_USER")
     smtp_password = os.getenv("SMTP_PASSWORD")
     admin_email = os.getenv("ADMIN_EMAIL")
 
-    if not smtp_password or not admin_email:
-        print("[WARNING] SMTP settings incomplete (missing SMTP_PASSWORD or ADMIN_EMAIL)", flush=True)
+    if not smtp_host or not smtp_user or not smtp_password or not admin_email:
+        print("[WARNING] SMTP settings incomplete (missing host, user, password, or admin email)", flush=True)
         return
 
     employee_name = event_data.get("employeeName", "Unknown Employee")
@@ -112,43 +115,40 @@ def send_event_notification_email(event_data: dict):
     </html>
     """
 
-    # Hit Brevo HTTP API directly instead of SMTP to bypass Render's port 587/465 blocking on free tiers
-    url = "https://api.brevo.com/v3/smtp/email"
-    headers = {
-        "accept": "application/json",
-        "api-key": smtp_password,
-        "content-type": "application/json"
-    }
-    payload = {
-        "sender": {
-            "name": "BPPL Event Tracker",
-            "email": admin_email  # Sender must be verified in your Brevo account
-        },
-        "to": [
-            {
-                "email": admin_email,
-                "name": "Admin"
-            }
-        ],
-        "subject": subject,
-        "htmlContent": html_content
-    }
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = f"BPPL Event Tracker <{admin_email}>"
+    msg["To"] = admin_email
 
+    msg.attach(MIMEText(html_content, "html"))
+
+    # Determine ports to try
+    ports_to_try = []
     try:
-        req = urllib.request.Request(
-            url, 
-            data=json.dumps(payload).encode("utf-8"), 
-            headers=headers, 
-            method="POST"
-        )
-        with urllib.request.urlopen(req, timeout=20) as response:
-            response_body = response.read().decode("utf-8")
-            print(f"[SUCCESS] Event email sent via Brevo HTTP API: {response_body}", flush=True)
-    except urllib.error.HTTPError as e:
+        ports_to_try.append(int(smtp_port_env))
+    except ValueError:
+        ports_to_try.append(587)
+
+    # Port 2525 is supported by Brevo and is unblocked on Render's free plan
+    if 2525 not in ports_to_try:
+        ports_to_try.append(2525)
+
+    success = False
+    for port in ports_to_try:
+        print(f"[INFO] Attempting to send email via SMTP {smtp_host}:{port}...", flush=True)
         try:
-            error_body = e.read().decode("utf-8")
-            print(f"[ERROR] HTTPError while sending email via Brevo API: {e.code} - {e.reason} - {error_body}", flush=True)
-        except Exception:
-            print(f"[ERROR] HTTPError while sending email via Brevo API: {e.code} - {e.reason}", flush=True)
-    except Exception as e:
-        print(f"[ERROR] Failed to send email via Brevo HTTP API: {repr(e)}", flush=True)
+            server = smtplib.SMTP(smtp_host, port, timeout=15)
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(smtp_user, smtp_password)
+            server.sendmail(smtp_user, [admin_email], msg.as_string())
+            server.quit()
+            print(f"[SUCCESS] Event email sent successfully on port {port}", flush=True)
+            success = True
+            break
+        except Exception as e:
+            print(f"[WARNING] Failed to send email on port {port}: {repr(e)}", flush=True)
+
+    if not success:
+        print("[ERROR] Failed to send email on all attempted SMTP ports.", flush=True)
