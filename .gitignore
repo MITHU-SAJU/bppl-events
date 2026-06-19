@@ -1,0 +1,13 @@
+# Backend
+backend/.env
+backend/__pycache__/
+backend/venv/
+backend/**/*.pyc
+*.pyc
+
+# Frontend
+bppl/node_modules/
+bppl/dist/
+bppl/.env
+bppl/.env.local
+bppl/*.local
