@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API = "https://bppl-events.onrender.com";
 
 
 // Configure axios to automatically attach the token if available
