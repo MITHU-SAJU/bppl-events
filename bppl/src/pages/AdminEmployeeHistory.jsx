@@ -286,7 +286,7 @@ function AdminEmployeeHistory() {
 </div>
               </div>
 
-              {/* History Table */}
+              {/* History Tabless */}
               <div className="col-12">
                 <div className="card shadow-sm">
                 
