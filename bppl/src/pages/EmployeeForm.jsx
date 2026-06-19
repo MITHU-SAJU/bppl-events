@@ -75,6 +75,12 @@ function EmployeeForm() {
       await createEvent(formData);
       setIsError(false);
       setShowSuccessModal(true); // Open the success popup modal
+      
+      // Auto close after 3 seconds (3000ms)
+      setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 3000);
+
       setFormData({
         employeeId: "",
         employeeName: "",
@@ -266,22 +272,15 @@ function EmployeeForm() {
             <div className="modal-content shadow-lg border-0" style={{ borderRadius: "20px", overflow: "hidden" }}>
               <div className="modal-body p-4 text-center">
                 <div 
-                  className="mx-auto mb-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle"
+                  className="mx-auto mb-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle animate-bounce"
                   style={{ width: "80px", height: "80px", fontSize: "3rem" }}
                 >
                   🎉
                 </div>
                 <h3 className="fw-extrabold text-dark mb-2" style={{ letterSpacing: "-0.5px" }}>Success!</h3>
-                <p className="text-secondary small mb-4 px-2" style={{ fontSize: "0.9rem" }}>
-                  Your event registration details have been submitted successfully. The database has been updated and the admin has been notified.
+                <p className="text-secondary small mb-0 px-2" style={{ fontSize: "0.9rem" }}>
+                  Your event registration details have been submitted successfully.
                 </p>
-                <button
-                  type="button"
-                  className="btn btn-primary w-100 py-2.5 rounded-3 fw-bold shadow-sm"
-                  onClick={() => setShowSuccessModal(false)}
-                >
-                  Submit Another Event
-                </button>
               </div>
             </div>
           </div>

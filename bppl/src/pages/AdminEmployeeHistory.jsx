@@ -24,6 +24,8 @@ function AdminEmployeeHistory() {
     particulars: "",
   });
 
+  const [activeParticulars, setActiveParticulars] = useState(null);
+
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEventName, setFilterEventName] = useState("");
@@ -300,6 +302,7 @@ function AdminEmployeeHistory() {
                             <th>Start Date</th>
                             <th>End Date</th>
                             <th>Duration</th>
+                            <th className="text-center">Services</th>
                             <th className="text-center" style={{ width: "160px" }}>Actions</th>
                           </tr>
                         </thead>
@@ -314,6 +317,21 @@ function AdminEmployeeHistory() {
                                 <span className="badge bg-dark text-white font-monospace">
                                   {event.days || 0} {event.days === 1 ? "day" : "days"}
                                 </span>
+                              </td>
+                              <td className="text-center">
+                                {event.particulars ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center mx-auto"
+                                    style={{ width: "36px", height: "36px", borderRadius: "50%", padding: 0 }}
+                                    title="View Services"
+                                    onClick={() => setActiveParticulars(event.particulars)}
+                                  >
+                                    🛠️
+                                  </button>
+                                ) : (
+                                  <span className="text-muted small">None</span>
+                                )}
                               </td>
                               <td className="text-center">
                                 <button
@@ -333,7 +351,7 @@ function AdminEmployeeHistory() {
                           ))}
                           {filteredEvents.length === 0 && (
                             <tr>
-                              <td colSpan="6" className="text-center py-5 text-muted">
+                              <td colSpan="7" className="text-center py-5 text-muted">
                                 No events registered for this employee matching the filters.
                               </td>
                             </tr>
@@ -446,6 +464,48 @@ function AdminEmployeeHistory() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Particulars Viewer Modal */}
+      {activeParticulars && (
+        <div
+          className="modal show d-block fade-in"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(4px)", zIndex: 1070 }}
+        >
+          <div className="modal-dialog modal-dialog-centered mx-auto" style={{ maxWidth: "450px" }}>
+            <div className="modal-content shadow-lg border-0" style={{ borderRadius: "18px" }}>
+              <div className="modal-header bg-primary text-white py-3 px-4" style={{ borderTopLeftRadius: "18px", borderTopRightRadius: "18px" }}>
+                <h5 className="modal-title fw-bold m-0 text-white">🛠️ Registered Services / Particulars</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  aria-label="Close"
+                  onClick={() => setActiveParticulars(null)}
+                ></button>
+              </div>
+              <div className="modal-body p-4">
+                <p className="text-muted small mb-3">The following services are registered for this event:</p>
+                <div className="d-flex flex-wrap gap-2">
+                  {activeParticulars.split(",").map(p => p.trim()).filter(Boolean).map((part, idx) => (
+                    <span key={idx} className="badge bg-light text-primary border border-primary-subtle font-monospace text-none py-2 px-3" style={{ fontSize: "0.85rem", textTransform: "none", borderRadius: "8px" }}>
+                      {part}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="modal-footer bg-light py-2 px-3">
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm px-4"
+                  onClick={() => setActiveParticulars(null)}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
