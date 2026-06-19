@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "https://bppl-events.onrender.com/"
+const API = "https://bppl-events.onrender.com"
 
 
 // Configure axios to automatically attach the token if available
