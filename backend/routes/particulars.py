@@ -121,7 +121,7 @@ def get_particulars():
     return particulars
 
 @router.post("/particulars")
-def create_particular(particular: ParticularModel, admin_user: str = Depends(get_current_admin)):
+def create_particular(particular: ParticularModel):
     # Check if duplicate name (case insensitive)
     existing = particulars_collection.find_one({"name": {"$regex": f"^{particular.name}$", "$options": "i"}})
     if existing:

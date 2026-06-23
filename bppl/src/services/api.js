@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API = "https://bppl-events.onrender.com"
+const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:8000"
+    : "https://bppl-events.onrender.com";
 
 
 // Configure axios to automatically attach the token if available

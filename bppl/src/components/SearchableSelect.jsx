@@ -16,8 +16,9 @@ const CATEGORIES = [
   "Other"
 ];
 
-function SearchableSelect({ options, value, onChange, onRefresh, required, isMulti }) {
+function SearchableSelect({ options, value, onChange, onRefresh, required, isMulti, allowAdd = false }) {
   const isAdmin = !!localStorage.getItem("adminToken");
+  const canAdd = isAdmin || allowAdd;
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -155,7 +156,7 @@ function SearchableSelect({ options, value, onChange, onRefresh, required, isMul
           )}
           <span className="small text-secondary ms-2">▼</span>
         </div>
-        {isAdmin && (
+        {canAdd && (
           <button 
             type="button" 
             className="btn btn-outline-primary px-3 d-flex align-items-center"
@@ -238,7 +239,7 @@ function SearchableSelect({ options, value, onChange, onRefresh, required, isMul
             )}
           </div>
 
-          {isAdmin && search.trim() && !hasExactMatch && (
+          {canAdd && search.trim() && !hasExactMatch && (
             <div className="border-top pt-2 mt-2">
               <button
                 type="button"

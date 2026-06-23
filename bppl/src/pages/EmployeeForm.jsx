@@ -182,6 +182,7 @@ function EmployeeForm() {
                 onRefresh={fetchParticulars}
                 required
                 isMulti={true}
+                allowAdd={true}
               />
             </div>
 
