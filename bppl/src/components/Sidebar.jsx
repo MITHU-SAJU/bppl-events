@@ -47,6 +47,15 @@ function Sidebar() {
         >
           <span style={{ fontSize: "1.1rem" }}>🛠️</span> Services
         </Link>
+        <Link 
+          to="/admin/invoices" 
+          onClick={handleLinkClick}
+          className={`list-group-item list-group-item-action ${
+            location.pathname === "/admin/invoices" ? "active" : ""
+          }`}
+        >
+          <span style={{ fontSize: "1.1rem" }}>🧾</span> Invoices
+        </Link>
       </div>
     </div>
   );

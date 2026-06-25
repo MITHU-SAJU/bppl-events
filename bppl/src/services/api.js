@@ -73,3 +73,20 @@ export const createParticular = (data) => {
 export const deleteParticular = (id) => {
     return axios.delete(`${API}/particulars/${id}`);
 };
+
+export const getInvoices = () => {
+    return axios.get(`${API}/invoices`);
+};
+
+export const createInvoice = (data) => {
+    return axios.post(`${API}/invoices`, data);
+};
+
+export const updateInvoice = (id, data) => {
+    return axios.put(`${API}/invoices/${id}`, data);
+};
+
+export const deleteInvoice = (id) => {
+    return axios.delete(`${API}/invoices/${id}`);
+};
+

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 
-import 'screens/dashboard_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const MobileApp());
@@ -37,7 +37,7 @@ class MobileApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const DashboardScreen(),
+      home: const SplashScreen(),
     );
   }
 }

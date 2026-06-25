@@ -6,6 +6,7 @@ import AdminEmployees from "./pages/AdminEmployees";
 import AdminEvents from "./pages/AdminEvents";
 import AdminEmployeeHistory from "./pages/AdminEmployeeHistory";
 import AdminServices from "./pages/AdminServices";
+import AdminInvoices from "./pages/AdminInvoices";
 
 // Protected Route Component (Step 3/4)
 const ProtectedRoute = ({ children }) => {
@@ -44,6 +45,10 @@ function App() {
         <Route 
           path="/admin/services" 
           element={<ProtectedRoute><AdminServices /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/admin/invoices" 
+          element={<ProtectedRoute><AdminInvoices /></ProtectedRoute>} 
         />
         
         {/* Default redirect based on auth status */}
