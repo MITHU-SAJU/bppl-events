@@ -146,4 +146,20 @@ export const deleteDebitNote = (id) => {
     return axios.delete(`${API}/debit-notes/${id}`);
 };
 
+// Clients API
+export const getClients = (search = "", skip = 0, limit = 20) => {
+    return axios.get(`${API}/clients`, {
+        params: { search, skip, limit }
+    });
+};
+export const createClient = (data) => {
+    return axios.post(`${API}/clients`, data);
+};
+export const updateClient = (id, data) => {
+    return axios.put(`${API}/clients/${id}`, data);
+};
+export const deleteClient = (id) => {
+    return axios.delete(`${API}/clients/${id}`);
+};
+
 

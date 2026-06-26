@@ -9,6 +9,7 @@ from routes.quotations import router as quotations_router
 from routes.proformas import router as proformas_router
 from routes.credit_notes import router as credit_notes_router
 from routes.debit_notes import router as debit_notes_router
+from routes.clients import router as clients_router
 import os
 
 app = FastAPI()
@@ -22,6 +23,7 @@ app.include_router(quotations_router)
 app.include_router(proformas_router)
 app.include_router(credit_notes_router)
 app.include_router(debit_notes_router)
+app.include_router(clients_router)
 
 # CORS configuration
 allowed_origins = [

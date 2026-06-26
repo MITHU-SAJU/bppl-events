@@ -11,6 +11,7 @@ import AdminQuotations from "./pages/AdminQuotations";
 import AdminProformas from "./pages/AdminProformas";
 import AdminCreditNotes from "./pages/AdminCreditNotes";
 import AdminDebitNotes from "./pages/AdminDebitNotes";
+import AdminClients from "./pages/AdminClients";
 
 // Protected Route Component (Step 3/4)
 const ProtectedRoute = ({ children }) => {
@@ -69,6 +70,10 @@ function App() {
         <Route 
           path="/admin/debit-notes" 
           element={<ProtectedRoute><AdminDebitNotes /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/admin/clients" 
+          element={<ProtectedRoute><AdminClients /></ProtectedRoute>} 
         />
         
         {/* Default redirect based on auth status */}

@@ -92,6 +92,15 @@ function Sidebar() {
         >
           <span style={{ fontSize: "1.1rem" }}>📈</span> Debit Notes
         </Link>
+        <Link 
+          to="/admin/clients" 
+          onClick={handleLinkClick}
+          className={`list-group-item list-group-item-action ${
+            location.pathname === "/admin/clients" ? "active" : ""
+          }`}
+        >
+          <span style={{ fontSize: "1.1rem" }}>👤</span> Clients
+        </Link>
       </div>
     </div>
   );

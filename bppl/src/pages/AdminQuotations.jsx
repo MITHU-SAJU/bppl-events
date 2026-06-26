@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getQuotations, createQuotation, updateQuotation, deleteQuotation, createProforma, createInvoice } from "../services/api";
+import { getQuotations, createQuotation, updateQuotation, deleteQuotation, createProforma, createInvoice, getClients } from "../services/api";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import beatslogo from "../assets/beats-logo.jpg";
@@ -71,11 +71,17 @@ function AdminQuotations() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   
+  // Client Master Selection states
+  const [clients, setClients] = useState([]);
+  const [clientSearch, setClientSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  
   const [quotationForm, setQuotationForm] = useState({
     invoiceNumber: "",
     invoiceDate: new Date().toISOString().split("T")[0],
     eventDate: "",
     clientName: "",
+    companyName: "",
     clientAddress: "",
     clientGst: "",
     clientEmail: "",
@@ -101,7 +107,29 @@ function AdminQuotations() {
   
   const [currentId, setCurrentId] = useState(null);
 
-  useEffect(() => { loadQuotations(); }, []);
+  useEffect(() => {
+    loadQuotations();
+    loadClientsForDropdown();
+  }, []);
+
+  const loadClientsForDropdown = async () => {
+    try {
+      const res = await getClients("", 0, 0);
+      setClients(res.data.clients || []);
+    } catch (e) {
+      console.error("Error loading clients list:", e);
+    }
+  };
+
+  const filteredClients = clients.filter(c => {
+    const term = clientSearch.toLowerCase();
+    return (
+      (c.clientName || "").toLowerCase().includes(term) ||
+      (c.companyName || "").toLowerCase().includes(term) ||
+      (c.mobileNumber || "").includes(term) ||
+      (c.gstNumber || "").toLowerCase().includes(term)
+    );
+  });
 
   const loadQuotations = async () => {
     setLoading(true);
@@ -125,6 +153,7 @@ function AdminQuotations() {
       invoiceDate: new Date().toISOString().split("T")[0],
       eventDate: "",
       clientName: "",
+      companyName: "",
       clientAddress: "",
       clientGst: "",
       clientEmail: "",
@@ -147,6 +176,8 @@ function AdminQuotations() {
       terms: DEFAULT_TERMS,
       status: "Draft"
     });
+    setClientSearch("");
+    setDropdownOpen(false);
     setErrorMsg("");
     setSuccessMsg("");
     setViewState("add");
@@ -154,15 +185,19 @@ function AdminQuotations() {
 
   const handleOpenEditForm = (quot) => {
     setCurrentId(quot._id);
-    setQuotationForm({ ...quot });
+    setQuotationForm({
+      ...quot,
+      companyName: quot.companyName || ""
+    });
+    setClientSearch(quot.companyName ? `${quot.companyName} (${quot.clientName})` : quot.clientName || "");
+    setDropdownOpen(false);
     setErrorMsg("");
     setSuccessMsg("");
     setViewState("edit");
   };
 
   const handleOpenPreview = (quot) => {
-    setCurrentId(quot._id);
-    setQuotationForm({ ...quot });
+    handleOpenEditForm(quot);
     setViewState("preview");
   };
 
@@ -456,24 +491,87 @@ function AdminQuotations() {
                       </select>
                     </div>
                   </div>
+                  {/* Client Selector Dropdown */}
                   <h5 className="fw-bold mb-3">Client Information</h5>
+                  <div className="row g-3 mb-3">
+                    <div className="col-12 col-md-6 position-relative">
+                      <label className="form-label font-monospace text-secondary small fw-bold">Select Client from Master (Searchable)</label>
+                      <div className="input-group">
+                        <span className="input-group-text bg-white border-end-0">🔍</span>
+                        <input
+                          type="text"
+                          className="form-control border-start-0"
+                          placeholder="Search by Name, Company, Mobile or GST..."
+                          value={clientSearch}
+                          onChange={(e) => {
+                            setClientSearch(e.target.value);
+                            setDropdownOpen(true);
+                          }}
+                          onFocus={() => setDropdownOpen(true)}
+                        />
+                        {clientSearch && (
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary"
+                            onClick={() => {
+                              setClientSearch("");
+                              setDropdownOpen(false);
+                            }}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {dropdownOpen && filteredClients.length > 0 && (
+                        <ul className="list-group position-absolute w-100 shadow-lg" style={{ zIndex: 1000, maxHeight: "200px", overflowY: "auto" }}>
+                          {filteredClients.map(c => (
+                            <li
+                              key={c._id}
+                              className="list-group-item list-group-item-action cursor-pointer"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => {
+                                const addrParts = [c.address, c.city, c.state, c.pincode].filter(Boolean);
+                                setQuotationForm(prev => ({
+                                  ...prev,
+                                  clientName: c.clientName || "",
+                                  companyName: c.companyName || "",
+                                  clientAddress: addrParts.join(", "),
+                                  clientGst: c.gstNumber || "",
+                                  clientEmail: c.email || ""
+                                }));
+                                setClientSearch(c.companyName ? `${c.companyName} (${c.clientName})` : c.clientName);
+                                setDropdownOpen(false);
+                              }}
+                            >
+                              <div className="fw-bold">{c.companyName || c.clientName}</div>
+                              <div className="text-muted small">
+                                Name: {c.clientName} | Mobile: {c.mobileNumber} {c.gstNumber ? `| GST: ${c.gstNumber}` : ""}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="row g-3 mb-4">
-                    <div className="col-12 col-md-4">
-                      <label className="form-label font-monospace text-secondary small fw-bold">Company Name</label>
-                      <input type="text" className="form-control" required value={quotationForm.clientName} onChange={(e) => setQuotationForm({ ...quotationForm, clientName: e.target.value })} />
+                    <div className="col-12 col-md-3">
+                      <label className="form-label font-monospace text-secondary small fw-bold">Client Name (Contact Person)</label>
+                      <input type="text" className="form-control" required value={quotationForm.clientName} onChange={(e) => setQuotationForm({ ...quotationForm, clientName: e.target.value })} placeholder="John Doe" />
+                    </div>
+                    <div className="col-12 col-md-3">
+                      <label className="form-label font-monospace text-secondary small fw-bold">Client Company Name</label>
+                      <input type="text" className="form-control" value={quotationForm.companyName} onChange={(e) => setQuotationForm({ ...quotationForm, companyName: e.target.value })} placeholder="Phase1 Events Pvt Ltd" />
                     </div>
                     <div className="col-12 col-md-4">
                       <label className="form-label font-monospace text-secondary small fw-bold">Address</label>
-                      <textarea className="form-control" rows="2" required value={quotationForm.clientAddress} onChange={(e) => setQuotationForm({ ...quotationForm, clientAddress: e.target.value })} />
+                      <textarea className="form-control" rows="2" required value={quotationForm.clientAddress} onChange={(e) => setQuotationForm({ ...quotationForm, clientAddress: e.target.value })} placeholder="Client Address..." />
                     </div>
                     <div className="col-12 col-md-2">
                       <label className="form-label font-monospace text-secondary small fw-bold">GSTIN</label>
-                      <input type="text" className="form-control font-monospace" value={quotationForm.clientGst} onChange={(e) => setQuotationForm({ ...quotationForm, clientGst: e.target.value })} />
+                      <input type="text" className="form-control font-monospace" value={quotationForm.clientGst} onChange={(e) => setQuotationForm({ ...quotationForm, clientGst: e.target.value })} placeholder="29AACCP2422J1ZG" />
                     </div>
-                    <div className="col-12 col-md-2">
-                      <label className="form-label font-monospace text-secondary small fw-bold">Email</label>
-                      <input type="email" className="form-control" value={quotationForm.clientEmail} onChange={(e) => setQuotationForm({ ...quotationForm, clientEmail: e.target.value })} />
-                    </div>
+                   
                   </div>
                   <hr className="my-4 border-secondary-subtle" />
                   <div className="d-flex justify-content-between align-items-center mb-3">
@@ -576,7 +674,14 @@ function AdminQuotations() {
                   <div className="col-7">
                     <h3 className="fw-bold mb-2" style={{ fontSize: "1rem" }}>Bill To</h3>
                     <div style={{ fontSize: "0.85rem", lineHeight: "1.4" }}>
-                      <strong className="d-block mb-1">{quotationForm.clientName}</strong>
+                      {quotationForm.companyName ? (
+                        <>
+                          <strong className="d-block mb-0" style={{ fontSize: "1rem" }}>{quotationForm.companyName}</strong>
+                          {quotationForm.clientName && <span className="text-secondary small d-block mb-1">Attn: {quotationForm.clientName}</span>}
+                        </>
+                      ) : (
+                        <strong className="d-block mb-1">{quotationForm.clientName}</strong>
+                      )}
                       <div style={{ whiteSpace: "pre-wrap", color: "#333" }}>{quotationForm.clientAddress}</div>
                       {quotationForm.clientGst && <div className="mt-1"><strong>GSTIN:</strong> {quotationForm.clientGst}</div>}
                     </div>

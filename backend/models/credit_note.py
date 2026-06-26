@@ -14,6 +14,7 @@ class CreditNoteModel(BaseModel):
     
     # Bill To
     clientName: str
+    companyName: Optional[str] = ""
     clientAddress: Optional[str] = ""
     clientEmail: Optional[str] = ""
     clientGst: Optional[str] = ""
@@ -53,6 +54,7 @@ class UpdateCreditNoteModel(BaseModel):
     invoiceDate: Optional[str] = None
     eventDate: Optional[str] = None
     clientName: Optional[str] = None
+    companyName: Optional[str] = None
     clientAddress: Optional[str] = None
     clientEmail: Optional[str] = None
     clientGst: Optional[str] = None

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getInvoices, createInvoice, updateInvoice, deleteInvoice } from "../services/api";
+import { getInvoices, createInvoice, updateInvoice, deleteInvoice, getClients } from "../services/api";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import beatslogo from "../assets/beats-logo.jpg";
@@ -114,11 +114,17 @@ function AdminInvoices() {
   // Form states: "list", "add", "edit", "preview"
   const [viewState, setViewState] = useState("list");
   
+  // Client Master Selection states
+  const [clients, setClients] = useState([]);
+  const [clientSearch, setClientSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  
   const [invoiceForm, setInvoiceForm] = useState({
     invoiceNumber: "",
     invoiceDate: new Date().toISOString().split("T")[0],
     eventDate: "",
     clientName: "",
+    companyName: "",
     clientAddress: "",
     clientGst: "",
     clientEmail: "",
@@ -148,7 +154,27 @@ function AdminInvoices() {
 
   useEffect(() => {
     loadInvoices();
+    loadClientsForDropdown();
   }, []);
+
+  const loadClientsForDropdown = async () => {
+    try {
+      const res = await getClients("", 0, 0);
+      setClients(res.data.clients || []);
+    } catch (e) {
+      console.error("Error loading clients list:", e);
+    }
+  };
+
+  const filteredClients = clients.filter(c => {
+    const term = clientSearch.toLowerCase();
+    return (
+      (c.clientName || "").toLowerCase().includes(term) ||
+      (c.companyName || "").toLowerCase().includes(term) ||
+      (c.mobileNumber || "").includes(term) ||
+      (c.gstNumber || "").toLowerCase().includes(term)
+    );
+  });
 
   const loadInvoices = async () => {
     setLoading(true);
@@ -179,6 +205,7 @@ function AdminInvoices() {
       invoiceDate: new Date().toISOString().split("T")[0],
       eventDate: "",
       clientName: "",
+      companyName: "",
       clientAddress: "",
       clientGst: "",
       clientEmail: "",
@@ -201,6 +228,8 @@ function AdminInvoices() {
       terms: DEFAULT_TERMS,
       status: "Pending"
     });
+    setClientSearch("");
+    setDropdownOpen(false);
     setErrorMsg("");
     setSuccessMsg("");
     setViewState("add");
@@ -213,6 +242,7 @@ function AdminInvoices() {
       invoiceDate: invoice.invoiceDate,
       eventDate: invoice.eventDate || "",
       clientName: invoice.clientName,
+      companyName: invoice.companyName || "",
       clientAddress: invoice.clientAddress || "",
       clientGst: invoice.clientGst || "",
       clientEmail: invoice.clientEmail || "",
@@ -235,6 +265,8 @@ function AdminInvoices() {
       terms: invoice.terms || DEFAULT_TERMS,
       status: invoice.status || "Pending"
     });
+    setClientSearch(invoice.companyName ? `${invoice.companyName} (${invoice.clientName})` : invoice.clientName || "");
+    setDropdownOpen(false);
     setErrorMsg("");
     setSuccessMsg("");
     setViewState("edit");
@@ -667,6 +699,28 @@ function AdminInvoices() {
                             <span className="fw-extrabold text-dark font-monospace">
                               ₹{formatINR(inv.totalAmount)}
                             </span>
+                            {(() => {
+                              const expectedBalance = parseFloat((inv.totalAmount - (inv.paidAmount || 0)).toFixed(2));
+                              const actualBalance = parseFloat((inv.balanceDue || 0).toFixed(2));
+                              if (actualBalance < expectedBalance) {
+                                return (
+                                  <div style={{ marginTop: "2px" }}>
+                                    <span className="badge bg-danger rounded-3 font-monospace" style={{ fontSize: "0.68rem" }}>
+                                      Credited (Bal: ₹{formatINR(inv.balanceDue)})
+                                    </span>
+                                  </div>
+                                );
+                              } else if (actualBalance > expectedBalance) {
+                                return (
+                                  <div style={{ marginTop: "2px" }}>
+                                    <span className="badge bg-success rounded-3 font-monospace" style={{ fontSize: "0.68rem" }}>
+                                      Debited (Bal: ₹{formatINR(inv.balanceDue)})
+                                    </span>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
                           </td>
                           <td>
                             <span className={getStatusBadgeClass(inv.status)}>
@@ -780,17 +834,89 @@ function AdminInvoices() {
                     </div>
                   </div>
 
-                  {/* Client / Bill To Fields */}
+                  {/* Client Selector Dropdown */}
                   <h5 className="fw-bold mb-3">Bill To Information</h5>
+                  <div className="row g-3 mb-3">
+                    <div className="col-12 col-md-6 position-relative">
+                      <label className="form-label font-monospace text-secondary small fw-bold">Select Client from Master (Searchable)</label>
+                      <div className="input-group">
+                        <span className="input-group-text bg-white border-end-0">🔍</span>
+                        <input
+                          type="text"
+                          className="form-control border-start-0"
+                          placeholder="Search by Name, Company, Mobile or GST..."
+                          value={clientSearch}
+                          onChange={(e) => {
+                            setClientSearch(e.target.value);
+                            setDropdownOpen(true);
+                          }}
+                          onFocus={() => setDropdownOpen(true)}
+                        />
+                        {clientSearch && (
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary"
+                            onClick={() => {
+                              setClientSearch("");
+                              setDropdownOpen(false);
+                            }}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {dropdownOpen && filteredClients.length > 0 && (
+                        <ul className="list-group position-absolute w-100 shadow-lg" style={{ zIndex: 1000, maxHeight: "200px", overflowY: "auto" }}>
+                          {filteredClients.map(c => (
+                            <li
+                              key={c._id}
+                              className="list-group-item list-group-item-action cursor-pointer"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => {
+                                const addrParts = [c.address, c.city, c.state, c.pincode].filter(Boolean);
+                                setInvoiceForm(prev => ({
+                                  ...prev,
+                                  clientName: c.clientName || "",
+                                  companyName: c.companyName || "",
+                                  clientAddress: addrParts.join(", "),
+                                  clientGst: c.gstNumber || "",
+                                  clientEmail: c.email || ""
+                                }));
+                                setClientSearch(c.companyName ? `${c.companyName} (${c.clientName})` : c.clientName);
+                                setDropdownOpen(false);
+                              }}
+                            >
+                              <div className="fw-bold">{c.companyName || c.clientName}</div>
+                              <div className="text-muted small">
+                                Name: {c.clientName} | Mobile: {c.mobileNumber} {c.gstNumber ? `| GST: ${c.gstNumber}` : ""}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="row g-3 mb-4">
-                    <div className="col-12 col-md-4">
-                      <label className="form-label font-monospace text-secondary small fw-bold">Client Company Name</label>
+                    <div className="col-12 col-md-3">
+                      <label className="form-label font-monospace text-secondary small fw-bold">Client Name (Contact Person)</label>
                       <input
                         type="text"
                         className="form-control"
                         required
                         value={invoiceForm.clientName}
                         onChange={(e) => setInvoiceForm({ ...invoiceForm, clientName: e.target.value })}
+                        placeholder="John Doe"
+                      />
+                    </div>
+
+                    <div className="col-12 col-md-3">
+                      <label className="form-label font-monospace text-secondary small fw-bold">Client Company Name</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={invoiceForm.companyName}
+                        onChange={(e) => setInvoiceForm({ ...invoiceForm, companyName: e.target.value })}
                         placeholder="Phase1 Events And Entertainment Pvt Ltd"
                       />
                     </div>
@@ -818,16 +944,7 @@ function AdminInvoices() {
                       />
                     </div>
 
-                    <div className="col-12 col-md-2">
-                      <label className="form-label font-monospace text-secondary small fw-bold">Client Email (Optional)</label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        value={invoiceForm.clientEmail}
-                        onChange={(e) => setInvoiceForm({ ...invoiceForm, clientEmail: e.target.value })}
-                        placeholder="billing@client.com"
-                      />
-                    </div>
+                   
                   </div>
 
                   {/* Bank Details configuration */}
@@ -1016,10 +1133,25 @@ function AdminInvoices() {
                           <span className="text-secondary font-monospace fw-bold text-primary">GRAND TOTAL:</span>
                           <span className="fw-extrabold font-monospace text-primary fs-5">₹{formatINR(invoiceForm.totalAmount)}</span>
                         </div>
-                        <div className="d-flex justify-content-between text-danger">
-                          <span className="font-monospace fw-bold">BALANCE DUE:</span>
-                          <span className="fw-extrabold font-monospace fs-5">₹{formatINR(invoiceForm.balanceDue)}</span>
-                        </div>
+                         {(() => {
+                          const expectedBalance = parseFloat((invoiceForm.totalAmount - (invoiceForm.paidAmount || 0)).toFixed(2));
+                          const actualBalance = parseFloat((invoiceForm.balanceDue || 0).toFixed(2));
+                          let labelText = "BALANCE DUE:";
+                          let textClass = "text-danger";
+                          if (actualBalance < expectedBalance) {
+                            labelText = "BALANCE DUE (CREDITED):";
+                            textClass = "text-danger";
+                          } else if (actualBalance > expectedBalance) {
+                            labelText = "BALANCE DUE (DEBITED):";
+                            textClass = "text-success";
+                          }
+                          return (
+                            <div className={`d-flex justify-content-between ${textClass}`}>
+                              <span className="font-monospace fw-bold">{labelText}</span>
+                              <span className="fw-extrabold font-monospace fs-5">₹{formatINR(invoiceForm.balanceDue)}</span>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -1129,7 +1261,14 @@ function AdminInvoices() {
                   <div className="col-7">
                     <h3 className="fw-bold mb-2" style={{ fontSize: "1rem" }}>Bill To</h3>
                     <div style={{ fontSize: "0.85rem", lineHeight: "1.4" }}>
-                      <strong className="d-block mb-1">{invoiceForm.clientName}</strong>
+                      {invoiceForm.companyName ? (
+                        <>
+                          <strong className="d-block mb-0" style={{ fontSize: "1rem" }}>{invoiceForm.companyName}</strong>
+                          {invoiceForm.clientName && <span className="text-secondary small d-block mb-1">Attn: {invoiceForm.clientName}</span>}
+                        </>
+                      ) : (
+                        <strong className="d-block mb-1">{invoiceForm.clientName}</strong>
+                      )}
                       <div style={{ whiteSpace: "pre-wrap", color: "#333" }}>{invoiceForm.clientAddress}</div>
                       {invoiceForm.clientGst && (
                         <div className="mt-1">
@@ -1231,10 +1370,32 @@ function AdminInvoices() {
                             <td className="text-end font-monospace">₹ {formatINR(invoiceForm.paidAmount)}</td>
                           </tr>
                         )}
-                        <tr className="fw-extrabold border-top border-dark" style={{ fontSize: "0.95rem" }}>
-                          <td className="pt-1">Balance Due</td>
-                          <td className="text-end font-monospace pt-1">₹ {formatINR(invoiceForm.balanceDue)}</td>
-                        </tr>
+                        {(() => {
+                          const expectedBalance = parseFloat((invoiceForm.totalAmount - (invoiceForm.paidAmount || 0)).toFixed(2));
+                          const actualBalance = parseFloat((invoiceForm.balanceDue || 0).toFixed(2));
+                          if (actualBalance < expectedBalance) {
+                            return (
+                              <tr className="fw-extrabold border-top border-dark text-danger" style={{ fontSize: "0.95rem" }}>
+                                <td className="pt-1">Balance Due (Credited)</td>
+                                <td className="text-end font-monospace pt-1">₹ {formatINR(invoiceForm.balanceDue)}</td>
+                              </tr>
+                            );
+                          } else if (actualBalance > expectedBalance) {
+                            return (
+                              <tr className="fw-extrabold border-top border-dark text-success" style={{ fontSize: "0.95rem" }}>
+                                <td className="pt-1">Balance Due (Debited)</td>
+                                <td className="text-end font-monospace pt-1">₹ {formatINR(invoiceForm.balanceDue)}</td>
+                              </tr>
+                            );
+                          } else {
+                            return (
+                              <tr className="fw-extrabold border-top border-dark" style={{ fontSize: "0.95rem" }}>
+                                <td className="pt-1">Balance Due</td>
+                                <td className="text-end font-monospace pt-1">₹ {formatINR(invoiceForm.balanceDue)}</td>
+                              </tr>
+                            );
+                          }
+                        })()}
                       </tbody>
                     </table>
                   </div>

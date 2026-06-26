@@ -73,6 +73,7 @@ function AdminDebitNotes() {
     invoiceDate: new Date().toISOString().split("T")[0],
     eventDate: "",
     clientName: "",
+    companyName: "",
     clientAddress: "",
     clientGst: "",
     clientEmail: "",
@@ -131,6 +132,7 @@ function AdminDebitNotes() {
       invoiceDate: new Date().toISOString().split("T")[0],
       eventDate: "",
       clientName: "",
+      companyName: "",
       clientAddress: "",
       clientGst: "",
       clientEmail: "",
@@ -161,7 +163,10 @@ function AdminDebitNotes() {
   };
 
   const handleOpenPreview = (note) => {
-    setDebitNoteForm({ ...note });
+    setDebitNoteForm({
+      ...note,
+      companyName: note.companyName || ""
+    });
     setViewState("preview");
   };
 
@@ -177,6 +182,7 @@ function AdminDebitNotes() {
       invoiceId: selectedInvoice._id,
       parentInvoiceNumber: selectedInvoice.invoiceNumber,
       clientName: selectedInvoice.clientName,
+      companyName: selectedInvoice.companyName || "",
       clientAddress: selectedInvoice.clientAddress || "",
       clientGst: selectedInvoice.clientGst || "",
       clientEmail: selectedInvoice.clientEmail || "",
@@ -530,7 +536,14 @@ function AdminDebitNotes() {
                   <div className="col-7">
                     <h3 className="fw-bold mb-2" style={{ fontSize: "1rem" }}>Bill To</h3>
                     <div style={{ fontSize: "0.85rem", lineHeight: "1.4" }}>
-                      <strong className="d-block mb-1">{debitNoteForm.clientName}</strong>
+                      {debitNoteForm.companyName ? (
+                        <>
+                          <strong className="d-block mb-0" style={{ fontSize: "1rem" }}>{debitNoteForm.companyName}</strong>
+                          {debitNoteForm.clientName && <span className="text-secondary small d-block mb-1">Attn: {debitNoteForm.clientName}</span>}
+                        </>
+                      ) : (
+                        <strong className="d-block mb-1">{debitNoteForm.clientName}</strong>
+                      )}
                       <div style={{ whiteSpace: "pre-wrap", color: "#333" }}>{debitNoteForm.clientAddress}</div>
                       {debitNoteForm.clientGst && <div className="mt-1"><strong>GSTIN:</strong> {debitNoteForm.clientGst}</div>}
                     </div>
