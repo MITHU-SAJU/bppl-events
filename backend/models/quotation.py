@@ -1,14 +1,14 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
-class InvoiceItem(BaseModel):
+class QuotationItem(BaseModel):
     description: str
     quantity: float
     rate: float
     amount: float
 
-class InvoiceModel(BaseModel):
-    invoiceNumber: str
+class QuotationModel(BaseModel):
+    invoiceNumber: str  # Keeping "invoiceNumber" for maximum UI logic reuse
     invoiceDate: str
     eventDate: Optional[str] = ""
     
@@ -19,7 +19,7 @@ class InvoiceModel(BaseModel):
     clientGst: Optional[str] = ""
     
     # Items
-    items: List[InvoiceItem]
+    items: List[QuotationItem]
     
     # Financial breakdown
     subtotal: float
@@ -42,22 +42,17 @@ class InvoiceModel(BaseModel):
     # Standard notes and terms
     notes: Optional[str] = ""
     terms: Optional[str] = ""
-    status: str = "Pending"
-    sourceQuotationId: Optional[str] = ""
-    sourceProformaId: Optional[str] = ""
+    status: str = "Draft"
 
-class UpdateInvoiceModel(BaseModel):
+class UpdateQuotationModel(BaseModel):
     invoiceNumber: Optional[str] = None
     invoiceDate: Optional[str] = None
     eventDate: Optional[str] = None
-    
     clientName: Optional[str] = None
     clientAddress: Optional[str] = None
     clientEmail: Optional[str] = None
     clientGst: Optional[str] = None
-    
-    items: Optional[List[InvoiceItem]] = None
-    
+    items: Optional[List[QuotationItem]] = None
     subtotal: Optional[float] = None
     cgstRate: Optional[float] = None
     cgstAmount: Optional[float] = None
@@ -68,14 +63,10 @@ class UpdateInvoiceModel(BaseModel):
     paidDate: Optional[str] = None
     balanceDue: Optional[float] = None
     totalAmountWords: Optional[str] = None
-    
     bankAccountName: Optional[str] = None
     bankAccountNumber: Optional[str] = None
     bankIfsc: Optional[str] = None
     bankName: Optional[str] = None
-    
     notes: Optional[str] = None
     terms: Optional[str] = None
     status: Optional[str] = None
-    sourceQuotationId: Optional[str] = None
-    sourceProformaId: Optional[str] = None

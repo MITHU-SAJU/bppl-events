@@ -90,3 +90,60 @@ export const deleteInvoice = (id) => {
     return axios.delete(`${API}/invoices/${id}`);
 };
 
+// Quotations API
+export const getQuotations = () => {
+    return axios.get(`${API}/quotations`);
+};
+export const createQuotation = (data) => {
+    return axios.post(`${API}/quotations`, data);
+};
+export const updateQuotation = (id, data) => {
+    return axios.put(`${API}/quotations/${id}`, data);
+};
+export const deleteQuotation = (id) => {
+    return axios.delete(`${API}/quotations/${id}`);
+};
+
+// Proformas API
+export const getProformas = () => {
+    return axios.get(`${API}/proformas`);
+};
+export const createProforma = (data) => {
+    return axios.post(`${API}/proformas`, data);
+};
+export const updateProforma = (id, data) => {
+    return axios.put(`${API}/proformas/${id}`, data);
+};
+export const deleteProforma = (id) => {
+    return axios.delete(`${API}/proformas/${id}`);
+};
+
+// Credit Notes API
+export const getCreditNotes = () => {
+    return axios.get(`${API}/credit-notes`);
+};
+export const createCreditNote = (data) => {
+    return axios.post(`${API}/credit-notes`, data);
+};
+export const updateCreditNote = (id, data) => {
+    return axios.put(`${API}/credit-notes/${id}`, data);
+};
+export const deleteCreditNote = (id) => {
+    return axios.delete(`${API}/credit-notes/${id}`);
+};
+
+// Debit Notes API
+export const getDebitNotes = () => {
+    return axios.get(`${API}/debit-notes`);
+};
+export const createDebitNote = (data) => {
+    return axios.post(`${API}/debit-notes`, data);
+};
+export const updateDebitNote = (id, data) => {
+    return axios.put(`${API}/debit-notes/${id}`, data);
+};
+export const deleteDebitNote = (id) => {
+    return axios.delete(`${API}/debit-notes/${id}`);
+};
+
+

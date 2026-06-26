@@ -56,6 +56,42 @@ function Sidebar() {
         >
           <span style={{ fontSize: "1.1rem" }}>🧾</span> Invoices
         </Link>
+        <Link 
+          to="/admin/quotations" 
+          onClick={handleLinkClick}
+          className={`list-group-item list-group-item-action ${
+            location.pathname === "/admin/quotations" ? "active" : ""
+          }`}
+        >
+          <span style={{ fontSize: "1.1rem" }}>📄</span> Quotations
+        </Link>
+        <Link 
+          to="/admin/proformas" 
+          onClick={handleLinkClick}
+          className={`list-group-item list-group-item-action ${
+            location.pathname === "/admin/proformas" ? "active" : ""
+          }`}
+        >
+          <span style={{ fontSize: "1.1rem" }}>📑</span> Proformas
+        </Link>
+        <Link 
+          to="/admin/credit-notes" 
+          onClick={handleLinkClick}
+          className={`list-group-item list-group-item-action ${
+            location.pathname === "/admin/credit-notes" ? "active" : ""
+          }`}
+        >
+          <span style={{ fontSize: "1.1rem" }}>📉</span> Credit Notes
+        </Link>
+        <Link 
+          to="/admin/debit-notes" 
+          onClick={handleLinkClick}
+          className={`list-group-item list-group-item-action ${
+            location.pathname === "/admin/debit-notes" ? "active" : ""
+          }`}
+        >
+          <span style={{ fontSize: "1.1rem" }}>📈</span> Debit Notes
+        </Link>
       </div>
     </div>
   );

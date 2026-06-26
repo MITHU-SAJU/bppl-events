@@ -5,6 +5,10 @@ from routes.events import router as events_router
 from routes.employees import router as employees_router
 from routes.particulars import router as particulars_router
 from routes.invoices import router as invoices_router
+from routes.quotations import router as quotations_router
+from routes.proformas import router as proformas_router
+from routes.credit_notes import router as credit_notes_router
+from routes.debit_notes import router as debit_notes_router
 import os
 
 app = FastAPI()
@@ -14,6 +18,10 @@ app.include_router(events_router)
 app.include_router(employees_router)
 app.include_router(particulars_router)
 app.include_router(invoices_router)
+app.include_router(quotations_router)
+app.include_router(proformas_router)
+app.include_router(credit_notes_router)
+app.include_router(debit_notes_router)
 
 # CORS configuration
 allowed_origins = [

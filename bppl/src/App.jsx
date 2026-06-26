@@ -7,6 +7,10 @@ import AdminEvents from "./pages/AdminEvents";
 import AdminEmployeeHistory from "./pages/AdminEmployeeHistory";
 import AdminServices from "./pages/AdminServices";
 import AdminInvoices from "./pages/AdminInvoices";
+import AdminQuotations from "./pages/AdminQuotations";
+import AdminProformas from "./pages/AdminProformas";
+import AdminCreditNotes from "./pages/AdminCreditNotes";
+import AdminDebitNotes from "./pages/AdminDebitNotes";
 
 // Protected Route Component (Step 3/4)
 const ProtectedRoute = ({ children }) => {
@@ -49,6 +53,22 @@ function App() {
         <Route 
           path="/admin/invoices" 
           element={<ProtectedRoute><AdminInvoices /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/admin/quotations" 
+          element={<ProtectedRoute><AdminQuotations /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/admin/proformas" 
+          element={<ProtectedRoute><AdminProformas /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/admin/credit-notes" 
+          element={<ProtectedRoute><AdminCreditNotes /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/admin/debit-notes" 
+          element={<ProtectedRoute><AdminDebitNotes /></ProtectedRoute>} 
         />
         
         {/* Default redirect based on auth status */}
