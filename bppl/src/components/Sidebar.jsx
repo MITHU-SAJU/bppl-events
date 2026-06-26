@@ -47,16 +47,16 @@ function Sidebar() {
         >
           <span style={{ fontSize: "1.1rem" }}>🛠️</span> Services
         </Link>
-        <Link 
-          to="/admin/invoices" 
+         <Link 
+          to="/admin/clients" 
           onClick={handleLinkClick}
           className={`list-group-item list-group-item-action ${
-            location.pathname === "/admin/invoices" ? "active" : ""
+            location.pathname === "/admin/clients" ? "active" : ""
           }`}
         >
-          <span style={{ fontSize: "1.1rem" }}>🧾</span> Invoices
+          <span style={{ fontSize: "1.1rem" }}>👤</span> Clients
         </Link>
-        <Link 
+         <Link 
           to="/admin/quotations" 
           onClick={handleLinkClick}
           className={`list-group-item list-group-item-action ${
@@ -75,6 +75,16 @@ function Sidebar() {
           <span style={{ fontSize: "1.1rem" }}>📑</span> Proformas
         </Link>
         <Link 
+          to="/admin/invoices" 
+          onClick={handleLinkClick}
+          className={`list-group-item list-group-item-action ${
+            location.pathname === "/admin/invoices" ? "active" : ""
+          }`}
+        >
+          <span style={{ fontSize: "1.1rem" }}>🧾</span> Invoices
+        </Link>
+       
+        <Link 
           to="/admin/credit-notes" 
           onClick={handleLinkClick}
           className={`list-group-item list-group-item-action ${
@@ -92,15 +102,7 @@ function Sidebar() {
         >
           <span style={{ fontSize: "1.1rem" }}>📈</span> Debit Notes
         </Link>
-        <Link 
-          to="/admin/clients" 
-          onClick={handleLinkClick}
-          className={`list-group-item list-group-item-action ${
-            location.pathname === "/admin/clients" ? "active" : ""
-          }`}
-        >
-          <span style={{ fontSize: "1.1rem" }}>👤</span> Clients
-        </Link>
+       
       </div>
     </div>
   );
